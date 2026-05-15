@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+@theme {
+  /* Nacional Distribuidora — tokens semânticos */
+  --color-primary: #174b86;
+  --color-primaryDark: #0b2f5f;
+  --color-ink: #071f3d;
+  --color-surface: #f8f7f2;
+  --color-muted: #e8edf3;
+  --color-accent: #f5c400;
+  --color-success: #1f7a55;
+
+  --font-sans: ui-sans-serif, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    "Noto Sans", "Liberation Sans", sans-serif;
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-surface text-ink font-sans antialiased;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--color-accent) 35%, transparent);
+  }
+}
+
+@layer utilities {
+  .n-container {
+    max-width: 1360px;
+    @apply mx-auto w-full px-4 sm:px-6 lg:px-8 xl:px-10;
+  }
+
+  .hero-scroll-hint {
+    animation: hero-scroll-bounce 2.4s ease-in-out infinite;
+  }
+
+  @keyframes hero-scroll-bounce {
+    0%,
+    100% {
+      transform: translateY(0);
+      opacity: 0.55;
+    }
+    50% {
+      transform: translateY(6px);
+      opacity: 1;
+    }
+  }
+}
+
+@media (min-width: 1536px) {
+  .n-container {
+    padding-inline: 3rem;
+  }
+}
