@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { partners } from '../../data/partners'
 
-const INTERVAL_MS = 2800
-const PARTNER_COUNT = partners.length
+const AUTOPLAY_MS = 2800
+const TRANSITION_MS = 500
+const GAP_PX = 16 // gap-4
 
 function useVisibleCount() {
   const [count, setCount] = useState(2)
@@ -41,39 +42,78 @@ function usePrefersReducedMotion() {
   return reduced
 }
 
-export function PartnerLogosCarousel() {
-  const visibleCount = useVisibleCount()
-  const reducedMotion = usePrefersReducedMotion()
-  const [index, setIndex] = useState(0)
-  const [animate, setAnimate] = useState(true)
-  const [paused, setPaused] = useState(false)
-
-  const loop = useMemo(() => [...partners, ...partners], [])
+function useStepPx(
+  viewportRef: React.RefObject<HTMLDivElement | null>,
+  visibleCount: number,
+) {
+  const [stepPx, setStepPx] = useState(0)
 
   useEffect(() => {
-    setIndex(0)
-    setAnimate(true)
+    const el = viewportRef.current
+    if (!el) return
+
+    const measure = () => {
+      const width = el.clientWidth
+      const cardWidth = (width - GAP_PX * (visibleCount - 1)) / visibleCount
+      setStepPx(cardWidth + GAP_PX)
+    }
+
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [visibleCount])
+
+  return stepPx
+}
+
+export function PartnerLogosCarousel() {
+  const viewportRef = useRef<HTMLDivElement>(null)
+  const visibleCount = useVisibleCount()
+  const reducedMotion = usePrefersReducedMotion()
+  const stepPx = useStepPx(viewportRef, visibleCount)
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [paused, setPaused] = useState(false)
+  const [slideOffset, setSlideOffset] = useState(0)
+  const [enableTransition, setEnableTransition] = useState(true)
+
+  const windowItems = useMemo(
+    () =>
+      Array.from({ length: visibleCount + 1 }, (_, i) =>
+        partners[(currentIndex + i) % partners.length],
+      ),
+    [currentIndex, visibleCount],
+  )
+
+  const cardWidthCss = `calc((100% - ${(visibleCount - 1) * 1}rem) / ${visibleCount})`
+
+  useEffect(() => {
+    setCurrentIndex(0)
+    setSlideOffset(0)
   }, [visibleCount])
 
   useEffect(() => {
-    if (reducedMotion || paused) return
+    if (reducedMotion || paused || stepPx === 0 || slideOffset > 0) return
 
     const id = window.setInterval(() => {
-      setIndex((current) => current + 1)
-    }, INTERVAL_MS)
+      setEnableTransition(true)
+      setSlideOffset(1)
+    }, AUTOPLAY_MS)
 
     return () => window.clearInterval(id)
-  }, [reducedMotion, paused])
+  }, [reducedMotion, paused, stepPx, slideOffset])
 
-  const handleTransitionEnd = () => {
-    if (index >= PARTNER_COUNT) {
-      setAnimate(false)
-      setIndex(0)
-      requestAnimationFrame(() => setAnimate(true))
-    }
-  }
+  const handleTransitionEnd = useCallback(() => {
+    if (slideOffset === 0) return
 
-  const shiftPercent = (index * 100) / loop.length
+    setEnableTransition(false)
+    setSlideOffset(0)
+    setCurrentIndex((i) => (i + 1) % partners.length)
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => setEnableTransition(true))
+    })
+  }, [slideOffset])
 
   if (reducedMotion) {
     return (
@@ -90,19 +130,31 @@ export function PartnerLogosCarousel() {
 
   return (
     <div
+      ref={viewportRef}
       className="mt-10 overflow-hidden"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       aria-roledescription="carousel"
       aria-label="Logos das empresas parceiras"
+      aria-live="off"
     >
       <div
-        className={`flex ${animate ? 'transition-transform duration-500 ease-in-out' : ''}`}
-        style={{ transform: `translateX(-${shiftPercent}%)` }}
+        className="flex gap-4"
+        style={{
+          transform: `translate3d(-${slideOffset * stepPx}px, 0, 0)`,
+          transition:
+            enableTransition && slideOffset > 0
+              ? `transform ${TRANSITION_MS}ms ease-in-out`
+              : 'none',
+        }}
         onTransitionEnd={handleTransitionEnd}
       >
-        {loop.map((partner, i) => (
-          <div key={`${partner.name}-${i}`} className="w-1/2 shrink-0 px-2 md:w-1/4 lg:w-1/6">
+        {windowItems.map((partner, i) => (
+          <div
+            key={`${partner.name}-${(currentIndex + i) % partners.length}`}
+            className="shrink-0"
+            style={{ width: cardWidthCss }}
+          >
             <PartnerLogoCard partner={partner} />
           </div>
         ))}
