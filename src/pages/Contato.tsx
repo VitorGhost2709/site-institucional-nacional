@@ -1,4 +1,5 @@
 import { Mail, MapPin, Phone } from 'lucide-react'
+import { ContactMap } from '../components/contact/ContactMap'
 import { SimplePage } from './SimplePage'
 import { site } from '../site/content'
 
@@ -64,6 +65,8 @@ export default function Contato() {
           </p>
         </div>
       </div>
+
+      <ContactMap />
     </SimplePage>
   )
 }

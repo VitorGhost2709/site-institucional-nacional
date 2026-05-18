@@ -18,6 +18,9 @@ export const site = {
     address: contactAddress,
     cnpj: '54.610.170/0001-17',
     mapsUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(contactAddress)}`,
+    mapsEmbedUrl:
+      'https://www.google.com/maps?q=Av.%20das%20Am%C3%A9ricas%2C%20555%20-%20Kennedy%2C%20Contagem%2FMG%2C%20CEP%2032145-000&output=embed',
+    mapsDirectionsUrl: `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(contactAddress)}`,
   },
   nav: [
     { label: 'Home', to: '/' },
