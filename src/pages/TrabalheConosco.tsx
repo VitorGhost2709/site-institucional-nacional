@@ -185,10 +185,18 @@ export default function TrabalheConosco() {
         body,
       })
 
-      const data = (await response.json().catch(() => null)) as { error?: string } | null
+      const data = (await response.json().catch(() => null)) as {
+        success?: boolean
+        message?: string
+        error?: string
+      } | null
 
-      if (!response.ok) {
-        throw new Error(data?.error ?? 'Falha ao enviar.')
+      if (!response.ok || data?.success === false) {
+        const apiMessage = data?.message ?? data?.error
+        throw new Error(
+          apiMessage ??
+            'Não foi possível enviar sua candidatura no momento. Tente novamente ou entre em contato pelo e-mail administrativo@nacionaldistribuicao.com.br.',
+        )
       }
 
       setState('success')
@@ -205,7 +213,7 @@ export default function TrabalheConosco() {
     } catch (err) {
       setState('error')
       setErrorMessage(
-        err instanceof Error && err.message !== 'Falha ao enviar.'
+        err instanceof Error
           ? err.message
           : 'Não foi possível enviar sua candidatura no momento. Tente novamente ou entre em contato pelo e-mail administrativo@nacionaldistribuicao.com.br.',
       )
