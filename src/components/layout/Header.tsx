@@ -31,7 +31,7 @@ export function Header() {
   }, [location.pathname])
 
   return (
-    <header className="sticky top-0 z-50 border-b border-muted/90 bg-[#F8F7F2]/95 text-ink shadow-[0_8px_30px_-22px_rgba(7,31,61,0.18)] backdrop-blur-md">
+    <header className="sticky top-0 z-50 border-b border-[#e8edf3] bg-[#f9f8f3] text-ink shadow-[0_8px_30px_-22px_rgba(7,31,61,0.18)]">
       <div className="n-container">
         <div className="flex h-[4.25rem] items-center justify-between gap-4 sm:h-[4.75rem]">
           <Link to="/" className="flex items-center rounded-xl py-1 transition-opacity hover:opacity-90">
@@ -128,7 +128,7 @@ export function Header() {
       </div>
 
       {mobileOpen && (
-        <div className="border-t border-muted bg-[#F8F7F2] lg:hidden">
+        <div className="border-t border-[#e8edf3] bg-[#f9f8f3] lg:hidden">
           <div className="n-container py-4">
             <div className="flex flex-col gap-1">
               {nav.map((item) => {

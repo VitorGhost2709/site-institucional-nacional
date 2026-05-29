@@ -5,21 +5,74 @@ import galpao2 from '../../assets/nacional/galpao2comprodutos.png'
 import galpao16 from '../../assets/nacional/galpao16comprodutos.png'
 import galpao17 from '../../assets/nacional/galpao17comprodutos.png'
 
-const slides = [
-  { src: galpao2, caption: 'Estrutura de armazenagem', alt: 'Galpão da Nacional com estrutura de armazenagem' },
-  { src: galpao16, caption: 'Produtos organizados', alt: 'Produtos organizados no galpão da Nacional Distribuidora' },
-  { src: galpao17, caption: 'Operação preparada', alt: 'Operação logística preparada da Nacional Distribuidora' },
-] as const
+export type OperationalSlide = {
+  src: string
+  caption: string
+  alt: string
+  objectPosition?: string
+}
 
-const INTERVAL_MS = 5500
-const slideCount = slides.length
+export const defaultOperationalSlides: OperationalSlide[] = [
+  {
+    src: galpao2,
+    caption: 'Estrutura de armazenagem',
+    alt: 'Galpão da Nacional com estrutura de armazenagem',
+  },
+  {
+    src: galpao16,
+    caption: 'Produtos organizados',
+    alt: 'Produtos organizados no galpão da Nacional Distribuidora',
+  },
+  {
+    src: galpao17,
+    caption: 'Operação preparada',
+    alt: 'Operação logística preparada da Nacional Distribuidora',
+  },
+]
+
+export const aboutOperationalSlides: OperationalSlide[] = [
+  {
+    src: galpao2,
+    caption: 'Estrutura operacional',
+    alt: 'Galpão da Nacional Distribuidora com estrutura de armazenagem',
+    objectPosition: 'center',
+  },
+  {
+    src: galpao16,
+    caption: 'Produtos organizados',
+    alt: 'Produtos organizados no galpão da Nacional Distribuidora',
+    objectPosition: 'center',
+  },
+  {
+    src: galpao17,
+    caption: 'Galpão e abastecimento',
+    alt: 'Operação logística preparada da Nacional Distribuidora',
+    objectPosition: 'center',
+  },
+]
 
 const arrowClass =
   'absolute top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-white/25 bg-white/80 text-primaryDark shadow-[0_8px_20px_-10px_rgba(7,31,61,0.45)] transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent sm:h-10 sm:w-10'
 
-export function OperationalGallery() {
+type OperationalGalleryProps = {
+  slides?: OperationalSlide[]
+  autoplayMs?: number
+  pauseOnHover?: boolean
+  frameClassName?: string
+  ariaLabel?: string
+}
+
+export function OperationalGallery({
+  slides = defaultOperationalSlides,
+  autoplayMs = 5500,
+  pauseOnHover = false,
+  frameClassName = 'relative aspect-[4/3] overflow-hidden rounded-3xl bg-muted shadow-[0_24px_48px_-28px_rgba(7,31,61,0.28)] ring-1 ring-muted sm:aspect-[16/11]',
+  ariaLabel = 'Galeria da operação da Nacional Distribuidora',
+}: OperationalGalleryProps) {
+  const slideCount = slides.length
   const [index, setIndex] = useState(0)
   const [autoplayEpoch, setAutoplayEpoch] = useState(0)
+  const [paused, setPaused] = useState(false)
 
   const resetAutoplay = useCallback(() => {
     setAutoplayEpoch((epoch) => epoch + 1)
@@ -30,39 +83,45 @@ export function OperationalGallery() {
       setIndex(((nextIndex % slideCount) + slideCount) % slideCount)
       resetAutoplay()
     },
-    [resetAutoplay],
+    [resetAutoplay, slideCount],
   )
 
   const goNext = useCallback(() => {
     setIndex((current) => (current + 1) % slideCount)
     resetAutoplay()
-  }, [resetAutoplay])
+  }, [resetAutoplay, slideCount])
 
   const goPrev = useCallback(() => {
     setIndex((current) => (current - 1 + slideCount) % slideCount)
     resetAutoplay()
-  }, [resetAutoplay])
+  }, [resetAutoplay, slideCount])
 
   useEffect(() => {
+    if (pauseOnHover && paused) return
+
     const id = window.setInterval(() => {
       setIndex((current) => (current + 1) % slideCount)
-    }, INTERVAL_MS)
+    }, autoplayMs)
+
     return () => window.clearInterval(id)
-  }, [autoplayEpoch])
+  }, [autoplayEpoch, autoplayMs, pauseOnHover, paused, slideCount])
 
   return (
     <div
       className="relative w-full"
       role="region"
       aria-roledescription="carousel"
-      aria-label="Galeria da operação da Nacional Distribuidora"
+      aria-label={ariaLabel}
+      onMouseEnter={pauseOnHover ? () => setPaused(true) : undefined}
+      onMouseLeave={pauseOnHover ? () => setPaused(false) : undefined}
     >
-      <div className="relative aspect-[4/3] overflow-hidden rounded-3xl bg-muted shadow-[0_24px_48px_-28px_rgba(7,31,61,0.28)] ring-1 ring-muted sm:aspect-[16/11]">
+      <div className={frameClassName}>
         {slides.map((slide, i) => (
           <img
             key={slide.caption}
             src={slide.src}
             alt={slide.alt}
+            style={slide.objectPosition ? { objectPosition: slide.objectPosition } : undefined}
             className={[
               'absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ease-in-out',
               i === index ? 'opacity-100' : 'opacity-0',

@@ -1,6 +1,7 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
-import { Header } from './components/layout/Header'
 import { Footer } from './components/layout/Footer'
+import { Header } from './components/layout/Header'
+import { ScrollToTop } from './components/layout/ScrollToTop'
 import Home from './pages/Home'
 import QuemSomos from './pages/QuemSomos'
 import EmpresasParceiras from './pages/EmpresasParceiras'
@@ -12,6 +13,7 @@ import NotFound from './pages/NotFound'
 export default function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <div className="min-h-dvh bg-surface">
         <Header />
         <Routes>
